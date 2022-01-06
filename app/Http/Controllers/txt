@@ -1,0 +1,866 @@
+  public function importData(Request $request)
+    {
+      // echo "<pre>";print_r($_FILES);die;
+
+       if($_POST['itype'] == 1){
+
+     try {      
+           $extension = pathinfo($_FILES['uploadFile']['name'], PATHINFO_EXTENSION);     //check extension
+           $csvFile = fopen($_FILES['uploadFile']['tmp_name'], 'r');           
+           fgetcsv($csvFile);
+           //echo '<pre>'; print_r($csvFile); die;
+
+           while(($csvData = fgetcsv($csvFile)) !== FALSE){
+           $csvData = array_map("utf8_encode", $csvData);
+           //echo '<pre>'; print_r($csvData); die;
+           
+           $formonth = $_POST['formonth'];
+           $foryear = $_POST['foryear'];
+           $flat_no = $csvData[1];
+          
+            $exists = Customer::where('flat_no', '=', $csvData[1])
+           ->where('formonth', '=',  $formonth)
+           ->where('foryear', '=', $foryear)->exists();
+           //echo '<pre>'; print_r($exists); die;
+          
+
+           if($exists){
+
+            Session::flash('error', 'Data Already Exists');
+            return redirect()->back();
+
+           }
+           else{
+
+            $data = Excel::import(new CustomersImport, request()->file('uploadFile'));
+            Session::flash('dataimported', 'Data has been imported successfully');
+            return redirect()->back();
+
+            }  
+        }  
+         }catch (\Exception $e) {
+            Session::flash('baseerror', 'import field doesnot match');
+            return redirect()->back();
+       }
+    }elseif($_POST['itype'] == 2){
+        
+        try {      
+            $extension = pathinfo($_FILES['uploadFile']['name'], PATHINFO_EXTENSION);     //check extension
+            $csvFile = fopen($_FILES['uploadFile']['tmp_name'], 'r');           
+            fgetcsv($csvFile);
+            //echo '<pre>'; print_r($csvFile); die;
+ 
+            while(($csvData = fgetcsv($csvFile)) !== FALSE){
+            $csvData = array_map("utf8_encode", $csvData);
+            //echo '<pre>'; print_r($csvData); die;
+            
+            $formonth = $_POST['formonth'];
+            $foryear = $_POST['foryear'];
+            $flat_no = $csvData[0];
+           
+             $exists = Customer::where('flat_no', '=', $csvData[0])
+            ->where('formonth', '=',  $formonth)
+            ->where('foryear', '=', $foryear)->exists();
+            //echo '<pre>'; print_r($exists); die;
+           
+ 
+            if($exists){
+ 
+             Session::flash('error', 'Data Already Exists');
+             return redirect()->back();
+ 
+            }
+            else{
+ 
+             $data = Excel::import(new CustomersImport, request()->file('uploadFile'));
+             Session::flash('dataimported', 'Data has been imported successfully');
+             return redirect()->back();
+ 
+             }  
+         }  
+          }catch (\Exception $e) {
+            $bug = $e->getMessage();
+            $response['success'] = false;
+            $response['messages'] = $bug;
+            return Response::json($response);
+        }
+
+    }
+
+   }
+
+
+
+
+
+   	<!-- Modal start -->
+     <div class="modal fade" id="exampleModalCenter" tabindex="-1" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+											<div class="modal-dialog modal-dialog-centered">
+											  	<div class="modal-content">
+													<div class="modal-header">
+														<h5 class="modal-title" id="exampleModalCenterTitle">Import</h5>
+														<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+													</div>
+													<div class="modal-body">
+															<!-- Field wrapper start -->
+											<div class="field-wrapper">
+													<select class="form-select" id="itype" name="itype">
+														<option selected disabled>--select type--</option>
+														<option  value="1">Monthly</option>
+														<option value="2">Masters</option>
+													</select>
+													<div class="field-placeholder">Import Type</div>
+												</div>
+												<!-- Field wrapper end -->
+
+												<div class="field-wrapper">
+                                                  
+												  <input type="month" id="monthyear" name="monthyear"
+														min="2021-03" value="" placeholder="2010,00" style="width: 82%;">
+														<div class="field-placeholder">YYYY-MM</div>
+												 </div>
+
+												<!-- Field wrapper start -->
+												<div class="field-wrapper">
+													<div class="input-group">									<label>Upload CSV File</labe>
+														<input type="file" id="uploadFile" class="uploadFile" name="uploadFile" required="" accept=".csv"/>			</div>
+													     </div>			
+													  </div>
+													<div class="modal-footer">
+													
+														<!-- Field wrapper start -->
+												<div class="field-wrapper">
+												<button type="submit" id="monthlyCSV" class="btn btn-primary">Import Data</button>
+												</div>
+												<!-- Field wrapper end -->
+													</div>
+													</form>
+											  	</div>
+											</div>
+										</div>
+						
+									</div>
+									
+							</div>
+           
+
+
+
+
+
+              if($exists){
+  
+  $response['success'] = false;
+  $response['messages'] = 'Data already exists';
+  return response()->json(['success' => $response]);
+}
+else{
+
+$data = Excel::import(new CustomersImport, request()->file('uploadFile'));
+$response['success'] = true;
+$response['messages'] = 'Succesfully imported';
+return response()->json(['success' => $response]);
+}  
+}  
+}catch (\Exception $e) {
+$bug = $e->getMessage();
+$response['success'] = false;
+$response['messages'] = $bug;
+return Response::json($response);
+
+
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<calculation>>>>>>>>>>>>>>>
+///////////////////////////////////consume unit//////////////////////////////////////////////
+      $cur =  Master::select('cur_rd')->get();
+      $values = $cur->toArray();
+      $ar1 = array();
+      foreach($values as $key => $value){ 
+      $ar1['cur_rd'][] = $value['cur_rd'];
+   
+     //echo'<pre>'; print_r($value['cur_rd']); die;
+       $flt =  Customer::select('pr_rd')->get();
+       $results = $flt->toArray();
+       foreach($results as $key => $result){
+       $ar2['pr_rd'][] = $result['pr_rd'];
+       }
+     }
+   
+      $meterReading = $value['cur_rd'] - $result['pr_rd'];      //subtract current reading - previous  
+     // echo $meterReading; 
+///////////////////////////////////multiply///////////////////////////////////////////////
+
+  $convfac =  Customer::select('conv_fac')->get();
+  $convs = $convfac->toArray();
+  $ar1 = array();
+  foreach($convs as $key => $conv){ 
+  $ar1['conv_fac'][] = $conv['conv_fac'];
+  }
+  $unitConsumed =  $meterReading * $conv['conv_fac'];   //multiply
+  //echo $unitConsumed; die;
+
+///////////////////////////////*****AMT*****/////////////////////////////////
+
+  $gasrate =  Customer::select('gas_rt')->get();
+  $gass = $gasrate->toArray();
+  $ar1 = array();
+  foreach($gass as $key => $gas){ 
+  $ar1['gas_rt'][] = $gas['gas_rt'];
+  }
+
+   $amount =  $unitConsumed * $gas['gas_rt'];   //multiply gas rate 
+    //echo $amount; die;
+
+/////////////////////////////////balance////////////////////////////////
+
+   $maintanence =  Customer::select('main_char')->get();
+   $charges = $maintanence->toArray();
+   $ar1 = array();
+   foreach($charges as $key => $charge){  
+    $ar1['main_char'][] = $charge['main_char']; 
+   
+   $late =  Master::select('lat_pay_char')->get();
+   $latepays = $late->toArray();
+   $ar2 = array();
+   foreach($latepays as $key => $latepay){ 
+    $ar2['lat_pay_char'][] = $latepay['lat_pay_char'];
+   }
+   }
+
+  $balance = $amount + $charge['main_char'] + $latepay['lat_pay_char'] ; 
+ //echo $balance; die;
+///////////////////////////////////NPA////////////////////////////////////
+    $amtlastpay =  Master::select('amt_last_p')->get();
+    $lastpays = $amtlastpay->toArray();
+    $ar2 = array();
+    foreach($lastpays as $key => $lastpay){  
+      $ar2['amt_last_p'][] = $lastpay['amt_last_p'];
+    //print_r($value); die; 
+    }
+   
+    $npa = $balance - $lastpay['amt_last_p']; 
+    // echo $npa; die;
+         /////////////////////////////////company setup/////////////////////////////
+            $companys = Company::all();
+            $companys1 = $companys->toArray();
+            foreach($companys1 as $company1){
+            //echo'<pre>'; print_r($company1); die;
+            new Customer ([
+             'cmpyName' =>$company1['cmpyName'],
+             'cmpyNo' =>$company1['cmpyNo'],
+             'gstNum' =>$company1['gstNum'],
+             'cmpyAddress' =>$company1['cmpyAddress'],
+             'bankAcc' =>$company1['bankAcc'],
+             'ifscCode' =>$company1['ifscCode'],
+             'billerName' =>$company1['billerName'],
+             'payCall' =>$company1['payCall'],
+            ]);
+            // echo'<pre>'; print_r($company1['cmpyName']); die;
+            }
+ 
+     <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<pdf>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+     '<html>
+           <body style="font-size: 12px;  margin:0px; padding:0px;">
+           <table width="100%" border= "0" cellspacing="0" cellpadding="0">
+           <tr>
+             <td colspan="2" style="width:70%; border-top: 1px solid black; border-bottom: 1px solid black; border-left: 1px solid black; border-right: 1px solid black;"><h2 style="margin-top: 3px; padding: 6px;"><u>'.$company1['cmpyName'].'</u></h2>
+           <p style="margin-bottom: 3px; margin-top: -15px; padding: 6px;">9 Square Building, Sohana Landran Road, Sector 77, Mohali<br>
+               Phone No. '.$company1['cmpyNo'].'<br>
+               GST No. '.$company1['gstNum'].'</p></td>
+                  <td style="width:30%; border-top: 1px solid black; border-bottom: 1px solid black; border-right: 1px solid black;"> &nbsp; &nbsp;&nbsp;&nbsp;<img src="" alt="ic"width="100" height="60"> <img src="" alt="" width="80" height="70" style="margin-top: 10px;">
+                  </td>
+          </tr>
+          <tr>
+           <td style="width:30%; border-left: 1px solid black;  border-bottom: 1px solid black;"><p style="margin-top: 1px; margin-bottom: 2px; padding:3px;">Society:	Park View Residency<br>
+           &nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;Plot No.1, Sector 66<br>
+           &nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;Mohali</p></td>
+           <td style="width:35%; border-bottom: 1px solid black; "><table><tr><td><label style=" display: inline-block; width: 90px;" for="username">Flat No.</label>
+           <span>'.$merge['flat_no'].'</span>
+           
+       </td> </tr>  <tr><td>&nbsp;</td></tr><tr><td></td></tr> </table>
+       </td>
+ 
+              <td style="width:30%; border-bottom: 1px solid black; border-right: 1px solid black; ">
+                 <table>
+                  <tr>
+                      <td><label style=" display: inline-block; width: 80px;" for="username">Invoice No. :</label>
+                <span>'.$merge['inv_n'].'</span></td>
+                 </tr>
+                 <tr>
+                     <td>
+                 <label style=" display: inline-block; width: 80px;" for="username">Invoice Date :</label>
+                     <span></span>
+                 </tr></td> </table></td>
+             </tr>
+              <tr>
+                <td style="width:30%; border-left: 1px solid black;"><table>
+                  <tr>
+                      <td><label style="text-align:left; " for="username">Customer name:</label>
+                        </td>
+                  </tr>
+                  <tr>
+                     <td><label style="text-align:left;" for="username">Place:</label>
+                        </td>
+                 </tr>
+                 <tr>
+                     <td><label style="text-align:left;" for="username">Cust. Email:</label>
+                        </td>
+                 </tr>
+                 <tr>
+                     <td><label style="text-align:left;" for="username">Secondary No:</label>
+                     <br> <br>
+                      </td>
+                 </tr>
+ 
+              </table></td>
+              <td style="width:40%;">
+                 <table>
+                     <tr>
+                         <td><label style="text-align: left; display: inline-block; width: 120px;" for="username">Conversion Factor:</label>
+                           <span>'.$merge['conv_fac'].'</span></td>
+                     </tr>
+                     <tr>
+                        <td><label style="text-align:left; display: inline-block; width: 120px;" for="username">Meter Reading:</label>
+                          <span>'.$meterReading.'</span></td>
+                    </tr>
+                    <tr>
+                        <td><label style="text-align:left; display: inline-block; width: 120px;" for="username">Units Consumed:</label>
+                          <span>'.$unitConsumed.'</span></td>
+                    </tr>
+                    <tr>
+                        <td><label style="text-align:left;  display: inline-block; width: 120px;" for="username">Rate Per Kg:</label>
+                           <span>'.$merge['gas_rt'].'</span></td>
+                    </tr> </table> </td>
+                   
+                    <td style="width:30%; border-right: 1px solid black; text-align: right;">
+                     <table>
+                         <tr>
+                             <td><label style="text-align:left;  display: inline-block; width: 160px;" for="username">Usage Amount:</label>
+                                <span>'.$amount.'</span></td>
+                         </tr>
+                         <tr>
+                            <td><label style="text-align:left; display: inline-block; width: 160px;" for="username">Maintenance Charges:</label>
+                              <span style="text-align: right;">'.$merge['main_char'].'</span></td>
+                        </tr>
+                        <tr>
+                            <td><label style="text-align:left; display: inline-block; width: 160px;" for="username">Late Payment Charges:</label>
+                              <span>'.$merge['lat_pay_char'].'</span></td>
+                        </tr>
+                        <tr>
+                            <td><label style="text-align:left; display: inline-block; width: 160px;" for="username">Cheque Bounce Charges:</label>
+                              <span></span></td>
+                        </tr> </table>  </td>
+                      </tr>
+ 
+                     <tr>
+                             <td colspan ="2" style="border-left: 1px solid black; border-bottom: 1px solid black; text-align: left;"><table>
+                                 <tr>
+                                     <td><label style="text-align:left; display: inline-block; width: 150px;" for="username">Previous Reading:</label>
+                                        <span>'.$merge['pr_rd'].'</span></td>
+                                 </tr>
+                                 <tr>
+                                    <td><label style="text-align:left; display: inline-block; width: 150px;" for="username">Previous Reading Date:</label>
+                                    <span>'.$merge['pr_rd_dt'].'</span> </td>
+                                </tr>
+                                <tr>
+                                    <td><label style="text-align:left; display: inline-block; width: 150px;" for="username">Current Reading:</label>
+                                    <span>'.$merge['cur_rd'].'</span></td>
+                                </tr>
+                                <tr>
+                                    <td><label style="text-align:left; display: inline-block; width: 130px;" for="username">Current Reading Date</label>
+                                      <span>'.$merge['cur_rd_dt'].'</span></td>
+                                </tr> </table> </td>
+ 
+                                
+                                <td style=" border-right: 1px solid black; border-bottom: 1px solid black; text-align: right;">
+                                 <table>
+                                     <tr>
+                                         <td><label style="text-align:left; display: inline-block; width: 150px;" for="username">Last Payment:</label>
+                                            <span>'.$merge['lat_pay_char'].'</span></td>
+                                     </tr>
+                                     <tr>
+                                        <td><label style="text-align:left; display: inline-block; width: 150px;" for="username">Total Invoice Amount:</label>
+                                          <span> '.$balance.'</span>
+                                         </td>
+                                    </tr>
+                                    <tr>
+                                        <td><label style="text-align:left; display: inline-block; width: 150px;" for="username">Credit Balance:</label>
+                                        <span>'.$merge['cred_bal'].'</span>
+                                           </td>
+                                    </tr>
+                                     </table></td>
+                         </tr>
+           
+                     <tr>
+                         <td colspan="3" style="text-align:right; border-bottom: 1px solid black; border-right: 1px solid black; border-left: 1px solid black;">
+                             <label style="text-align:left;  display: inline-block; width: 200px; margin-top: 0px; margin-bottom: 12px;" for="username"><b>Net Payable Amount:<b></label>
+                             <span>'.$npa.'</span>
+                         </td>
+                     </tr>
+              
+                     <tr>
+                         <td colspan="2" style="border-left:1px solid black; border-bottom: 1px  solid black;"><table>
+                            
+                             <p style="margin-left:25px">&nbsp;&nbsp;&nbsp; &nbsp;<u><b>NEFT / IMPS:</b></u> Bank Account No.: '.$company1['bankAcc'].'<br>
+                             &nbsp;&nbsp;&nbsp; &nbsp; Bank : ICICI Bank Limited | IFSC Code : '.$company1['ifscCode'].'<br>
+                             &nbsp;&nbsp;&nbsp; &nbsp;  <b><u>Cheques<u></b> in favour of IQBAL HP GAS SERVICE<br>
+                                 </p>
+                                 <ul>
+                                 <li>Late Payment Charges @ 2% per month</li>
+                                 <li>For Bill Payment call Mr. '.$company1['billerName'].' | Mob: +91 '.$company1['payCall'].'</li>
+                                 <li>GST Inclusive of 5%</li>
+                             </ul>
+ 
+                         </table></td>
+                         <td style=" border-right: 1px solid black; border-bottom: 1px solid black;">
+                             <div class="box" style=" box-sizing: border-box;  margin-left: 1px; border: 1px solid black; width: 200px; height: 90px;">
+                                 <h4 style=" margin-top: 1px; margin-bottom: 45px; margin-left: 10px; text-align:right;">For IQBAL HP GAS SERVICE</h4>
+                                 <p style="text-align: right;">Authorized Signatory</p>
+                               </div>
+                         </td>
+                     </tr> 
+             </table> 
+ 
+ </body>
+ </html>
+
+
+
+ $slct = DB::table('customers')->update(['flat_no' => $value['flat_no'],'pr_rd' => $value['cur_rd'], 'pr_rd_dt'=>$value['cur_rd_dt'],'monthyear' => $value['monthyear']])->where('flat_no', $value['flat_no'])->get();
+
+
+
+
+ $qry = Master::select('flat_no', 'cur_rd','cur_rd_dt','monthyear')->where('monthyear', $final)->get();
+              $reslt = $qry->toArray();
+            // echo'<pre>'; print_r($reslt); die;
+             $arr1 = array();
+             foreach($reslt as $value){
+            //echo'<pre>'; print_r($value['flat_no']); die;
+              $slct = DB::table('customers')->where('flat_no', $value['flat_no'])->update(['flat_no' => $value['flat_no'],'pr_rd' => $value['cur_rd'], 'pr_rd_dt'=>$value['cur_rd_dt'],'monthyear' => $value['monthyear']]);
+              echo'<pre>'; print_r($slct); die;
+               }
+             
+
+               ////////////update/////
+               public function updateCmpny(Request $request, $id)
+{
+  $validator = Validator::make($request->all(),[
+    'cmpyName'=> 'required',
+    'cmpyNo'=> 'required',
+    'gstNum'=> 'required',
+    'cmpyAddress'=> 'required',
+    'bankAcc'=> 'required',
+    'ifscCode'=> 'required',
+    'billerName'=> 'required',
+    'payCall'=> 'required'
+
+  ]);
+  //print_r($validator); die;
+
+  if($validator->fails()){
+    return response()->json([
+      'status' =>400,
+      'errors' => $validator->messages(),
+    ]);
+  }else{
+    $company = Company::find($id);
+    if($company)
+  {
+    $company->cmpyName=$request->cmpyName;
+    $company->cmpyNo=$request->cmpyNo;
+    $company->gstNum=$request->gstNum;
+    $company->cmpyAddress=$request->cmpyAddress;
+    $company->bankAcc=$request->bankAcc;
+    $company->ifscCode=$request->ifscCode;
+    $company->billerName=$request->billerName;
+    $company->payCall=$request->payCall;
+    $company->update();
+
+    return response()->json([
+      'status' => 200,
+      'message' =>'update successsfully',
+      ]);
+
+  }
+  else{
+    return response()->json([
+      'status' => 404,
+      'message' => 'not found',
+   ]);
+
+    }
+        }
+     }
+
+     ???????????????????????????
+     //update
+		 $(document).on('click', '.updateComp', function(e){
+			 e.preventDefault();
+			 var comp_id = $(this).val();
+			 var data = {
+				 'cmpyName' : $('#edit_cmpyName').val(),
+				 'cmpyNo' : $('#edit_edit_cmpyNo').val(),
+				 'gstNum' : $('#edit_gstNum').val(),
+				 'cmpyAddress' : $('#edit_cmpyAddress').val(),
+				 'bankAcc' : $('#edit_bankAcc').val(),
+				 'ifscCode' : $('#edit_ifscCode').val(),
+				 'billerName' : $('#edit_billerName').val(),
+				 'payCall' : $('#edit_payCall').val(),
+			 }
+			 $.ajax({
+				 type: "PUT",
+				 headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+				 url: "/company-setup/update"+comp_id,
+				 data : data,
+				 datatype: "json",
+				 success: function (response){
+					 //console.log(response);
+					 if(response.status == 400){
+						$('#updateform').html("");
+					$('#updateform').addClass('alert alert-danger');
+					$.each(response.errors, function(key, er_value){
+						$('#updateform').append('<li>'+re_value+'</li>')
+					});
+					 }else if(response.status == 404){
+						$('#updateform').html("");
+					$('#success_message').addClass('alert alert-success')
+					$('#success_message').text(response.message)
+					 }else{
+                        $('#updateform').html("");
+						$('#success_message').html("");
+					$('#success_message').addClass('alert alert-success')
+					$('#success_message').text(response.message)
+
+					$('#editCompany').modal('hide');
+					fetchData();
+					 }
+				 }
+
+			 });
+		 });
+
+
+     ?????????????????????
+     $slct = DB::table('customers')->where('flat_no', $value['flat_no'])->update(['flat_no' => $value['flat_no'],'pr_rd' => $value['cur_rd'], 'pr_rd_dt'=>$value['cur_rd_dt'],'monthyear' => $value['monthyear']]);
+              echo'<pre>'; print_r($slct); die;
+
+
+
+
+              $table->string('flat_no');
+            $table->string('pr_rd');
+            $table->string('pr_rd_dt');
+            $table->string('conv_fac');
+            $table->string('gas_rt');
+            $table->string('main_char');
+            $table->string('monthyear'); 
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+public function uploadCSV(Request $request)
+
+   {
+    // echo "<pre>";print_r($_POST);die;
+    
+    if($_POST['itype'] == 1){
+
+
+        try {   
+
+               $exists = Customer::where('flat_no' , '=', ('flat_no'))
+               ->exists();
+          
+              //echo '<pre>'; print_r($exists); die;
+             
+   
+              if($exists){
+   
+                 $response['success'] = false;
+                 $response['messages'] = 'Data already exists';
+                 return response()->json(['success' => $response]);
+   
+              }
+              else{
+   
+                $data = Excel::import(new CustomersImport, request()->file('uploadFile'));
+                $response['success'] = true;
+                $response['messages'] = 'Succesfully imported';
+                return response()->json(['success' => $response]);
+              
+                
+           }  
+            }catch (\Exception $e) {
+              $response['success'] = false;
+              $response['messages'] = 'import field doesnot match';
+              return response()->json(['success' => $response]);
+          }
+         
+
+        
+
+       }elseif($_POST['itype'] == 2){
+            //echo '<pre>'; print_r($_FILES); die;
+            try {      
+                      
+             $monthyear = $_POST['monthyear'];
+ 
+            
+                 $exists = Reading::where
+                   ('monthyear', '=',  $monthyear)
+                ->exists();
+                //echo '<pre>'; print_r($exists); die;
+               
+                if($exists){
+     
+                 $response['success'] = false;
+                $response['messages'] = 'Data already exists';
+                return response()->json(['success' => $response]);
+     
+                }
+                else{
+     
+                
+ 
+                 $data = Excel::import(new CustomersImport, request()->file('uploadFile'));
+                 $response['success'] = true;
+                 $response['messages'] = 'Succesfully imported';
+                 return response()->json(['success' => $response]);
+     
+               
+             }  
+              }catch (\Exception $e) {
+                //$bug = $e->getMessage();
+                $response['success'] = false;
+                $response['messages'] = 'import field doesnot match';
+                return response()->json(['success' => $response]);
+            }
+   
+       }elseif($_POST['itype'] == 3){
+           
+        try {      
+                  
+         $monthyear = $_POST['monthyear'];
+
+         $last = (explode("-",$monthyear));
+         $c = $last[1] - 1;
+         $y =  str_pad($c, 2, "0", STR_PAD_LEFT);
+         $i = array($last[0], $y);
+         $final =  implode("-",$i);
+         //echo'<pre>'; print_r($final); die;
+             $exists = Master::where
+               ('monthyear', '=',  $monthyear)
+            ->exists();
+            //echo '<pre>'; print_r($exists); die;
+           
+            if($exists){
+ 
+             $response['success'] = false;
+            $response['messages'] = 'Data already exists';
+            return response()->json(['success' => $response]);
+ 
+            }
+            else{
+ 
+             $qry = Master::select('flat_no', 'cur_rd','cur_rd_dt')->where('monthyear', $final)->get();
+             $reslt = $qry->toArray();
+             // echo'<pre>'; print_r($reslt); die;
+             $arr1 = array();
+             foreach($reslt as $value){
+             //echo'<pre>'; print_r($reslt); die;
+             $slct = DB::table('readings')->where('flat_no', $value['flat_no'])->insert(['flat_no' => $value['flat_no'],'pr_rd' => $value['cur_rd'], 'pr_rd_dt'=>$value['cur_rd_dt'],'monthyear' => $monthyear]);
+               //echo'<pre>'; print_r($slct); die;
+          }
+
+             $data = Excel::import(new CustomersImport, request()->file('uploadFile'));
+             $response['success'] = true;
+             $response['messages'] = 'Succesfully imported';
+             return response()->json(['success' => $response]);
+ 
+           
+         }  
+          }catch (\Exception $e) {
+            //$bug = $e->getMessage();
+            $response['success'] = false;
+            $response['messages'] = 'import field doesnot match';
+            return response()->json(['success' => $response]);
+        }
+
+
+       }
+
+   
+   } 
+
+
+
+   ????????????????????????
+   $(document).ready(function(){
+       
+       fetchData();
+  
+       function fetchData()
+       {
+         $.ajax({
+           type: "GET",
+           url: "/company-setup/fetch",
+           datatype: "json",
+           success: function(response){
+             console.log(response.companys);
+            $.each(response.companys, function(key, value){ 
+              $('#cmptable tbody').append('<tr>\
+                 <td>'+value.cmpyName+'</td>\
+                 <td>'+value.cmpyNo+'</td>\
+                 <td>'+value.gstNum+'</td>\
+                 <td>'+value.cmpyAddress+'</td>\
+                 <td>'+value.bankName+'</td>\
+                 <td>'+value.bankAcc+'</td>\
+                 <td>'+value.ifscCode+'</td>\
+                 <td>'+value.billerName+'</td>\
+                 <td>'+value.payCall+'</td>\
+                 <td><button type="button" value="'+value.id+'" class=" edit_data btn btn-danger">Edit</button></td>\
+                          </tr>');
+  
+  
+            });
+           }
+         });
+       }
+  
+       $(document).on('click', '.edit_data', function(e){
+              e.preventDefault();
+        var comp_id = $(this).val();
+        //alert(comp_id); die;
+        $('#editCompany').modal('show');
+        $.ajax({
+          type: "GET",
+          url: "/company-setup/edit"+comp_id,
+          success:function(response){
+            //console.log(response);
+                  if(response.message == false){
+            $('#success_message').html("");
+            $('#success_message').addClass('alert alert-danger');
+            $('#success_message').text(response.message);
+          }else{
+  
+            $('#edit_cmpyName').val(response.company.cmpyName);
+            $('#edit_cmpyNo').val(response.company.cmpyNo);
+            $('#edit_gstNum').val(response.company.gstNum);
+            $('#edit_cmpyAddress').val(response.company.cmpyAddress);
+            $('#edit_bankName').val(response.company.bankName);
+            $('#edit_bankAcc').val(response.company.bankAcc);
+            $('#edit_ifscCode').val(response.company.ifscCode);
+            $('#edit_billerName').val(response.company.billerName);
+            $('#edit_payCall').val(response.company.payCall);
+                
+              }
+          }
+        });		  
+       });
+
+
+
+       	<!-- Button trigger modal -->
+         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+										Sample Download
+										</button>
+
+										<!-- Modal start -->
+										<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+											<div class="modal-dialog">
+												<div class="modal-content">
+												<div class="modal-header">
+													<h5 class="modal-title" id="staticBackdropLabel">Sample Download</h5>
+													<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+												</div>
+												<div class="modal-body">
+											<form method ="POST" action='/sample-download'>
+										    	<div class="field-wrapper">
+													<select class="form-select" id="stype" name="stype" >
+														<option selected disabled>--select type--</option>
+														<option  value="1">Masters</option>
+														<option value="2">opening Reading</option>
+														<option value="3">Customers</option>
+				
+													</select>
+													<div class="field-placeholder">Sample Type</div>
+												</div>
+												<!-- Field wrapper end -->
+											
+										
+												<button type="button" class="btn btn-primary">Download</button>
+												</div>
+												<div class="modal-footer">
+													<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+</form>
+												</div>
+												</div>
+											</div>
+										</div>
+										<!-- Modal end -->
+									</div>
+
+
+//////////////////////////////////////////
+$master = DB::table('customers')
+     ->join('readings', 'customers.flat_no','=','readings.flat_no')
+     ->join('masters_tbl_', 'customers.flat_no','=','masters_tbl_.flat_no')
+
+     ->get();     
+     $sim_reading = $master->toArray();
+      
+     return response()->json(['success' =>$sim_reading]);     
+
+
+
+     
+     $master = DB::table('customers')
+     ->join('readings', 'customers.flat_no','=','readings.flat_no')
+     ->join('masters_tbl_', 'customers.flat_no','=','masters_tbl_.flat_no')
+     ->select('customers.*')
+     ->get();     
+
+
+
+     $master = DB::table('masters_tbl_')
+     ->join('readings', 'masters_tbl_.flat_no','=','readings.flat_no')  
+     ->where('readings.monthyear',$monthyear)
+     ->get();
+
+     \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+     $monthyear = $_POST['monthyear'];  
+     $master = DB::table('customers')
+     ->join('readings', 'customers.flat_no','=','readings.flat_no')
+     ->join('masters_tbl_', 'customers.flat_no','=','masters_tbl_.flat_no')
+     ->where('masters_tbl_.monthyear',$monthyear)->where('readings.monthyear',$monthyear)
+     ->get(); 
+
+      $sim_reading = $master->toArray();
+      $array = json_decode(json_encode($sim_reading), true);
+     // echo'<pre>'; print_r($array); die;
+
+     foreach($array as $sim){
+      // echo'<pre>'; print_r($sim); die;
+      $meterReading = $sim['cur_rd'] - $sim['pr_rd'];
+      $unitConsumed =  $meterReading *  $sim['conv_fac']; 
+      $amount =  $unitConsumed * $sim['gas_rt'];   
+      $balance = $amount + $sim['main_char'] + $sim['lat_pay_char'] ;
+      $npa = $balance - $sim['amt_last_p'];
+
+        
+        $stack = array('cons_unt' => $meterReading, 'unt_cons' => $unitConsumed, 'amt'=> $amount, 'bal' => $balance, 'npa'=> $npa);
+        //array_push($stack, $sim); 
+     
+        $d = array_merge($sim, $stack);
+        //
+       
+       // echo'<pre>'; print_r($items); die;
+     
+     return response()->json(['success' =>$d]);       

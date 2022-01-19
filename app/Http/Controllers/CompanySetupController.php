@@ -85,9 +85,42 @@ public function deleteData($company_id){
   $company = Company::find($company_id);
   //Session::flash('delete', 'deleted');
   $company->delete();
-  
+  Session::flash('deleted', 'Data has been deleted');
   return redirect()->back();
 }   
+
+
+public function edit($id)
+{
+  $company = Company::find($id);
+ return response()->json([
+   'status' =>200,
+   'company' => $company,
+ ]);
+}
+
+public function update(Request $request)
+{
+  $comp_id = $request->comp_id;
+  $company = Company::find($comp_id);
+        $company->cmpyName=$request->cmpyName;
+        $company->cmpyNo=$request->cmpyNo;
+        $company->gstNum=$request->gstNum;
+        $company->cmpyAddress=$request->cmpyAddress;
+        $company->bankName=$request->bankName;
+        $company->bankAcc=$request->bankAcc;
+        $company->ifscCode=$request->ifscCode;
+        $company->billerName=$request->billerName;
+        $company->payCall=$request->payCall;
+        $company->society=$request->society;
+        $company->sector=$request->sector;
+        $company->city=$request->city;
+        Session::flash('updated', 'Data has been Updated');
+        $company->update();
+
+        return redirect()->back();
+}
+
 
     }        
        

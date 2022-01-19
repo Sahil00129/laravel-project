@@ -28,8 +28,8 @@
 	margin-left:4px;
 	margin-top:-47px;
 	font-size: 29px;
-
 }
+
 	</style>
 				<!-- Content wrapper scroll start -->
 				<div class="content-wrapper-scroll">
@@ -47,7 +47,7 @@
 										
 											<div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12">
 											
-									<div class="doc-block" style="width:504px; margin-left:50px;">
+									<div class="doc-block" style="width:83%; margin-left:50px;">
 									<h3 class="h3">Import Monthly Meter Reading</h3> 
 													<div class="doc-icon">
 													<img src="img/docs/xlc.png" alt="Doc Icon">
@@ -103,7 +103,7 @@
 
                       <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-12">
 						   
-												<div class="doc-block" style="width:504px; margin-left:30px;">
+												<div class="doc-block" style="width:83%; margin-left:30px;">
 												<h3 class="h23">Download Monthly Invoice PDF</h3>
 													<div class="doc-icon">
 														<img src="img/docs/pdf.svg" alt="Doc Icon">

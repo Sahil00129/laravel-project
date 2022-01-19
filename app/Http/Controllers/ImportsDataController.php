@@ -27,11 +27,8 @@ class ImportsDataController extends Controller
    /////////////////////////////////////////////////////////////////////////////////////////////////
    //////////////////////////////////////ajax import//////////////////////////////////////////////
    //////////////////////////////////////////////////////////////////////////////////////////////
-   
-   
- 
 
-///////////////////////////////////////////////////////////////////////////////////
+   ///////////////////////////////////////////////////////////////////////////////////
 
 public function uploadMasters(Request $request)
 
@@ -47,7 +44,7 @@ public function uploadMasters(Request $request)
           
         }catch (\Exception $e) {
           $response['success'] = false;
-          $response['messages'] = 'something wrong';
+          $response['messages'] = 'import field doesnot match';
           return response()->json(['success' => $response]);
       }
      
@@ -105,11 +102,13 @@ public function uploadCSV(Request $request)
                   
          $monthyear = $_POST['monthyear'];
 
-         $last = (explode("-",$monthyear));
-         $c = $last[1] - 1;
-         $y =  str_pad($c, 2, "0", STR_PAD_LEFT);
-         $i = array($last[0], $y);
-         $final =  implode("-",$i);
+        $newdate = date("Y-m", strtotime( '-1 months' , strtotime($monthyear)));
+       //echo '<pre>'; print_r($newdate); die;
+         $last = (explode("-",$monthyear)); //break monthyear
+         $c = $last[1] - 1;                //subtract month
+         $y =  str_pad($c, 2, "0", STR_PAD_LEFT);    //two digit no.
+         $i = array($last[0], $y);           
+         $final =  implode("-",$i);            //
          //echo'<pre>'; print_r($final); die;
              $exists = Master::where
                ('monthyear', '=',  $monthyear)
@@ -124,8 +123,8 @@ public function uploadCSV(Request $request)
  
             }
             else{
- 
-             $qry = Master::select('flat_no', 'cur_rd','cur_rd_dt')->where('monthyear', $final)->get();
+              
+             $qry = Master::select('flat_no', 'cur_rd','cur_rd_dt')->where('monthyear', $newdate)->get();
              $reslt = $qry->toArray();
              // echo'<pre>'; print_r($reslt); die;
              $arr1 = array();

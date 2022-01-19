@@ -8,7 +8,7 @@ use App\Models\Reading;
 use DB;
 
 use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class CustomersImport implements ToModel,WithHeadingRow
 {
@@ -21,7 +21,7 @@ class CustomersImport implements ToModel,WithHeadingRow
     {
        
 
-        if($_POST['itype'] == 1){
+        if($_POST['itype'] == 1){ 
          
             $flat = DB::table('customers')
             ->where('flat_no', '=', $row['flat_no'])
@@ -36,10 +36,7 @@ class CustomersImport implements ToModel,WithHeadingRow
                 'main_char' =>$row['main_char'],          
      
             ]);
-        }else{
-            return $e;
         }
-          
       }
     
         if($_POST['itype'] == 2){

@@ -60,3 +60,7 @@ Route::any('/upload-Masters', [ImportsDataController::class, 'uploadMasters']); 
 Route::get('/sample-master',[SampledownloadController::class, 'sampleMaster']);
 Route::get('/sample-opening',[SampledownloadController::class, 'sampleOpening']);
 Route::get('/sample-current',[SampledownloadController::class, 'sampleCurrent']);
+
+Route::get('edit-company/{id}', [CompanySetupController::class, 'edit']);
+
+Route::put('updated-company', [CompanySetupController::class, 'update']);

@@ -6,6 +6,12 @@
     margin-right: 17px;
     margin-top: 9px;
 }
+@media screen and (max-width: 600px) {
+  .search-container a:not(:first-child) {display: none;}
+  .search-container a.icon {
+    float: right;
+    display: block;
+  }
 }
     </style>
 	
@@ -38,7 +44,7 @@
                                         <div class="cd-dropdown-wrapper">
                                             
                                             <nav class="cd-dropdown">
-                                       
+                                            
                                               
                                             </nav>
                                         </div>
